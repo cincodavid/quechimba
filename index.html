@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quechimba.ai — Juegos en español para reírte con tu gente</title>
+<meta name="description" content="La casa de los juegos más divertidos en español. Empezando con ¿Qué tal si? — el juego de preguntas locas. Próximamente en quechimba.ai">
+<meta property="og:title" content="Quechimba.ai — Juegos en español">
+<meta property="og:description" content="Juegos para reírte con tu gente. Empezando con ¿Qué tal si? — el juego de preguntas locas.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://quechimba.ai">
+<style>
+  :root {
+    --bg-1: #1a0033;
+    --bg-2: #ff006e;
+    --bg-3: #ffbe0b;
+    --ink: #ffffff;
+    --ink-dim: rgba(255,255,255,0.75);
+    --accent-yes: #06d6a0;
+    --accent-no: #ef476f;
+    --card: rgba(255,255,255,0.08);
+    --card-border: rgba(255,255,255,0.18);
+    --soon: rgba(255,255,255,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--ink);
+    background: linear-gradient(135deg, var(--bg-1) 0%, #4a0080 40%, var(--bg-2) 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+  }
+  .logo {
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: -1px;
+  }
+  .logo .dot { color: var(--bg-3); }
+  .badge {
+    margin-left: auto;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 6px 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    color: var(--ink-dim);
+  }
+  .kicker {
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 12px;
+    color: var(--bg-3);
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: clamp(38px, 7.5vw, 64px);
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+  }
+  h1 .accent { color: var(--bg-3); }
+  .lead {
+    font-size: clamp(17px, 2.8vw, 20px);
+    color: var(--ink-dim);
+    line-height: 1.5;
+    margin-bottom: 48px;
+    max-width: 580px;
+  }
+
+  /* Featured game card */
+  .featured {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 28px 24px;
+    margin-bottom: 32px;
+  }
+  .feat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .feat-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    background: var(--bg-3);
+    color: var(--bg-1);
+    border-radius: 999px;
+    font-weight: 800;
+  }
+  .feat-title {
+    font-size: clamp(28px, 5vw, 36px);
+    font-weight: 900;
+    letter-spacing: -1px;
+  }
+  .feat-title em { font-style: italic; color: var(--bg-3); }
+  .feat-sub {
+    color: var(--ink-dim);
+    font-size: 15px;
+    margin-bottom: 22px;
+  }
+  .demo-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--ink-dim);
+    margin-bottom: 12px;
+  }
+  .demo-q {
+    font-size: clamp(20px, 3.5vw, 26px);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 24px;
+    padding: 18px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 14px;
+  }
+  .demo-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .demo-btn {
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 800;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.2s;
+  }
+  .demo-btn:hover { transform: scale(1.02); }
+  .demo-btn.yes { background: var(--accent-yes); }
+  .demo-btn.no  { background: var(--accent-no); }
+  .demo-result {
+    display: none;
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-dim);
+    padding-top: 14px;
+    border-top: 1px solid var(--card-border);
+    animation: fadeIn 0.4s ease-out;
+  }
+  .demo-result strong { color: var(--bg-3); font-weight: 800; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Coming-soon games (portfolio strip) */
+  .lineup-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--ink-dim);
+    margin: 48px 0 16px;
+    text-align: center;
+  }
+  .lineup {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 1fr;
+    margin-bottom: 48px;
+  }
+  @media (min-width: 560px) {
+    .lineup { grid-template-columns: 1fr 1fr 1fr; }
+  }
+  .soon {
+    background: var(--soon);
+    border: 1px dashed var(--card-border);
+    border-radius: 16px;
+    padding: 18px 14px;
+    text-align: center;
+  }
+  .soon-emoji { font-size: 26px; margin-bottom: 6px; }
+  .soon-name {
+    font-weight: 800;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .soon-name em { color: var(--bg-3); font-style: italic; }
+  .soon-tag {
+    font-size: 11px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Email capture */
+  .signup {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 28px 24px;
+    margin-bottom: 48px;
+  }
+  .signup h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .signup p {
+    color: var(--ink-dim);
+    margin-bottom: 18px;
+    font-size: 14px;
+  }
+  .signup form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  @media (min-width: 520px) {
+    .signup form { flex-direction: row; }
+  }
+  .signup input[type="email"] {
+    flex: 1;
+    padding: 16px 18px;
+    font-size: 16px;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.05);
+    color: var(--ink);
+    border-radius: 14px;
+    outline: none;
+  }
+  .signup input[type="email"]::placeholder { color: rgba(255,255,255,0.5); }
+  .signup input[type="email"]:focus { border-color: var(--bg-3); }
+  .signup button {
+    padding: 16px 28px;
+    font-size: 16px;
+    font-weight: 800;
+    background: var(--bg-3);
+    color: var(--bg-1);
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: transform 0.15s, opacity 0.2s;
+  }
+  .signup button:hover { transform: scale(1.03); }
+  .signup .ok {
+    display: none;
+    color: var(--accent-yes);
+    font-weight: 700;
+    margin-top: 12px;
+  }
+
+  /* Why-us features */
+  .features {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 1fr;
+    margin-bottom: 48px;
+  }
+  @media (min-width: 640px) {
+    .features { grid-template-columns: 1fr 1fr; }
+  }
+  .feat {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 18px;
+  }
+  .feat-icon { font-size: 26px; margin-bottom: 6px; }
+  .feat-title-sm { font-weight: 800; margin-bottom: 4px; font-size: 16px; }
+  .feat-text { color: var(--ink-dim); font-size: 14px; line-height: 1.5; }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    color: var(--ink-dim);
+    font-size: 13px;
+    padding-top: 24px;
+    border-top: 1px solid var(--card-border);
+  }
+  footer a { color: var(--bg-3); text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">quechimba<span class="dot">.ai</span></div>
+      <div class="badge">Próximamente</div>
+    </header>
+
+    <div class="kicker">La casa de los juegos en español</div>
+    <h1>Juegos para reírte <span class="accent">con tu gente.</span></h1>
+
+    <p class="lead">
+      Quechimba.ai es el hogar de una nueva familia de juegos en español, hechos con IA
+      y diseñados para reírse, conectar y compartir. Empezamos con un clásico instantáneo.
+    </p>
+
+    <!-- Featured: first game -->
+    <div class="featured">
+      <div class="feat-row">
+        <span class="feat-tag">Juego #1</span>
+        <span style="color: var(--ink-dim); font-size: 13px;">Próximamente</span>
+      </div>
+      <div class="feat-title"><em>¿Qué tal si…?</em></div>
+      <div class="feat-sub">Preguntas hipotéticas locas. Responde Sí o No. Descubre qué piensan los demás.</div>
+
+      <div class="demo-label">Pregunta de prueba</div>
+      <div class="demo-q" id="q">
+        ¿Qué tal si pudieras leer la mente de tu pareja, pero ella también pudiera leer la tuya?
+      </div>
+      <div class="demo-buttons">
+        <button class="demo-btn yes" onclick="answer('si')">Sí</button>
+        <button class="demo-btn no"  onclick="answer('no')">No</button>
+      </div>
+      <div class="demo-result" id="result">
+        El <strong id="pct">67%</strong> de los jugadores dijeron <strong id="majority">NO</strong>.<br>
+        Pronto vas a poder jugar la versión completa.
+      </div>
+    </div>
+
+    <div class="lineup-label">Próximos juegos en la familia Quechimba</div>
+    <div class="lineup">
+      <div class="soon">
+        <div class="soon-emoji">💑</div>
+        <div class="soon-name"><em>¿Qué tan bien me conoces?</em></div>
+        <div class="soon-tag">Para parejas</div>
+      </div>
+      <div class="soon">
+        <div class="soon-emoji">🍻</div>
+        <div class="soon-name"><em>El que pierde, bebe</em></div>
+        <div class="soon-tag">Para reuniones</div>
+      </div>
+      <div class="soon">
+        <div class="soon-emoji">🎭</div>
+        <div class="soon-name"><em>¿Quién es más probable?</em></div>
+        <div class="soon-tag">Para amigos</div>
+      </div>
+    </div>
+
+    <div class="signup">
+      <h2>Sé el primero en jugar</h2>
+      <p>Te avisamos cuando lancemos <em>¿Qué tal si?</em> y los demás juegos. Sin spam — solo cuando esté lista la app.</p>
+      <form id="signupForm" onsubmit="signup(event)">
+        <input type="email" id="email" placeholder="tu@correo.com" required>
+        <button type="submit">Anotarme</button>
+      </form>
+      <div class="ok" id="signupOk">¡Listo! Te avisamos pronto. 🎉</div>
+    </div>
+
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon">🧠</div>
+        <div class="feat-title-sm">Preguntas con IA</div>
+        <div class="feat-text">Cientos de preguntas nuevas cada semana, generadas por IA y revisadas en español nativo.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🌎</div>
+        <div class="feat-title-sm">Hecho para Latinoamérica</div>
+        <div class="feat-text">Versiones para México, Colombia, Argentina, España y EE.UU. Hispano. Sin traducciones raras.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📱</div>
+        <div class="feat-title-sm">Compartible en TikTok</div>
+        <div class="feat-text">Convertí cualquier pregunta en un video vertical listo para subir y reírte con tus amigos.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🎮</div>
+        <div class="feat-title-sm">Una familia de juegos</div>
+        <div class="feat-text">Un solo nombre, muchas formas de jugar. Quechimba.ai irá creciendo con nuevos juegos cada temporada.</div>
+      </div>
+    </div>
+
+    <footer>
+      © 2026 quechimba.ai · Síguenos en
+      <a href="#" id="tiktok">TikTok</a> ·
+      <a href="#" id="ig">Instagram</a> ·
+      <a href="#" id="yt">YouTube</a>
+    </footer>
+  </div>
+
+  <script>
+    // Demo question logic — purely client-side for the teaser
+    const fakeStats = { si: 33, no: 67 };
+    function answer(choice) {
+      const result = document.getElementById('result');
+      const pct = document.getElementById('pct');
+      const majority = document.getElementById('majority');
+      const majorityChoice = fakeStats.no > fakeStats.si ? 'no' : 'si';
+      pct.textContent = (fakeStats[majorityChoice]) + '%';
+      majority.textContent = majorityChoice === 'no' ? 'NO' : 'SÍ';
+      result.style.display = 'block';
+    }
+    // Email capture — replace endpoint with Formspree / Mailchimp / Supabase later
+    function signup(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      try {
+        const list = JSON.parse(localStorage.getItem('quechimba_emails') || '[]');
+        list.push({ email, ts: Date.now() });
+        localStorage.setItem('quechimba_emails', JSON.stringify(list));
+      } catch (err) { /* ignore */ }
+      document.getElementById('signupForm').style.display = 'none';
+      document.getElementById('signupOk').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
