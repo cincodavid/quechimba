@@ -12,6 +12,7 @@
     --ai:#2a1052; --user:#06d6a0; --correct:#ffbe0b; --error:#ef476f;
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  button{font-family:inherit;color:inherit}
   html,body{height:100%}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
     background:linear-gradient(160deg,var(--bg1) 0%,#3a0066 50%,#6a0a55 100%);
@@ -33,7 +34,7 @@
   .scenarios{display:grid;gap:12px;grid-template-columns:1fr 1fr}
   @media(min-width:560px){.scenarios{grid-template-columns:1fr 1fr 1fr}}
   .scn{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 14px;
-    cursor:pointer;transition:transform .15s,border-color .2s;text-align:left}
+    cursor:pointer;transition:transform .15s,border-color .2s;text-align:left;color:var(--ink)}
   .scn:hover{transform:translateY(-2px);border-color:var(--accent)}
   .scn .emoji{font-size:30px;display:block;margin-bottom:8px}
   .scn .t{font-weight:800;font-size:15px;margin-bottom:3px}
