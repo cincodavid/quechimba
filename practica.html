@@ -338,8 +338,7 @@ async function callOpenAI(){
     }
     if(reply) addMsg(reply,'ai');
     if(correction) addCorrection(correction);
-    else if(praise) addPraise(praise);
-    else if(isReply) addPraise(PRAISE[Math.floor(Math.random()*PRAISE.length)]); // fallback: always acknowledge a correct turn
+    else if(praise) addPraise(praise); // only praise when the AI actually judged it correct
   }catch(err){
     rmTyping();
     addMsg("(No se pudo conectar. Usando modo demo.)",'ai');
@@ -362,8 +361,10 @@ async function handleSend(){
     // demo: run error engine, then advance script
     const c = checkErrors(text);
     setTimeout(()=>{
+      // Demo mode can only catch a fixed list of known errors — it cannot truly
+      // judge correctness, so it never claims a sentence is "correct" (no praise).
+      // Accurate praise lives in LIVE mode, where the AI actually evaluates.
       if(c) addCorrection(c);
-      else addPraise(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
       state.demoStep++;
       const script = SCRIPTS[state.scenario];
       const next = script[Math.min(state.demoStep,script.length-1)];
