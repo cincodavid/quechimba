@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quechimba English — Practica inglés hablando</title>
+<style>
+  :root{
+    --bg1:#1a0033; --bg2:#ff006e; --accent:#ffbe0b;
+    --ink:#fff; --dim:rgba(255,255,255,.72);
+    --card:rgba(255,255,255,.08); --border:rgba(255,255,255,.18);
+    --ai:#2a1052; --user:#06d6a0; --correct:#ffbe0b; --error:#ef476f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    background:linear-gradient(160deg,var(--bg1) 0%,#3a0066 50%,#6a0a55 100%);
+    color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+  header{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--border)}
+  .logo{font-weight:900;font-size:20px;letter-spacing:-.5px}
+  .logo .dot{color:var(--accent)}
+  .logo .en{color:var(--accent);font-style:italic}
+  header .badge{margin-left:auto;font-size:11px;text-transform:uppercase;letter-spacing:1.2px;
+    padding:5px 10px;border:1px solid var(--border);border-radius:999px;color:var(--dim)}
+  .wrap{flex:1;max-width:760px;width:100%;margin:0 auto;padding:20px;display:flex;flex-direction:column}
+
+  /* Scenario picker */
+  .screen{display:none;flex-direction:column;flex:1}
+  .screen.active{display:flex}
+  h1{font-size:clamp(24px,5vw,34px);font-weight:900;letter-spacing:-1px;margin-bottom:8px;line-height:1.1}
+  h1 .accent{color:var(--accent)}
+  .sub{color:var(--dim);font-size:15px;margin-bottom:24px;line-height:1.5}
+  .scenarios{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+  @media(min-width:560px){.scenarios{grid-template-columns:1fr 1fr 1fr}}
+  .scn{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px 14px;
+    cursor:pointer;transition:transform .15s,border-color .2s;text-align:left}
+  .scn:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .scn .emoji{font-size:30px;display:block;margin-bottom:8px}
+  .scn .t{font-weight:800;font-size:15px;margin-bottom:3px}
+  .scn .d{font-size:12px;color:var(--dim);line-height:1.35}
+
+  .keyrow{margin-top:24px;padding:14px;background:rgba(0,0,0,.22);border:1px solid var(--border);border-radius:14px}
+  .keyrow label{font-size:13px;color:var(--dim);display:block;margin-bottom:8px}
+  .keyrow .line{display:flex;gap:8px;flex-wrap:wrap}
+  .keyrow input{flex:1;min-width:200px;padding:11px 12px;border-radius:10px;border:1px solid var(--border);
+    background:rgba(255,255,255,.06);color:var(--ink);font-size:13px;outline:none}
+  .keyrow input:focus{border-color:var(--accent)}
+  .keyrow .hint{font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5}
+  .mode-pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;margin-left:6px}
+  .mode-live{background:var(--user);color:#003a28}
+  .mode-demo{background:var(--accent);color:#3a2600}
+
+  /* Chat */
+  .chathead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .chathead .back{background:none;border:1px solid var(--border);color:var(--dim);border-radius:8px;
+    padding:6px 10px;cursor:pointer;font-size:13px}
+  .chathead .scn-title{font-weight:800;font-size:15px}
+  .chathead .scn-sub{font-size:12px;color:var(--dim)}
+  .msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:4px 2px 14px}
+  .msg{max-width:85%;padding:12px 15px;border-radius:18px;font-size:15px;line-height:1.45;position:relative;animation:pop .25s ease-out}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .msg.ai{background:var(--ai);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:5px}
+  .msg.user{background:#0f766e;color:#fff;align-self:flex-end;border-bottom-right-radius:5px;font-weight:600}
+  .msg .speak{background:none;border:none;cursor:pointer;font-size:14px;margin-left:6px;opacity:.7}
+  .correction{align-self:flex-start;max-width:90%;background:rgba(255,190,11,.12);border:1px solid var(--accent);
+    border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.5}
+  .correction .h{font-weight:800;color:var(--accent);font-size:12px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+  .correction .wrong{color:var(--error);text-decoration:line-through}
+  .correction .right{color:var(--user);font-weight:700}
+  .correction .why{color:var(--dim);margin-top:6px;font-size:13px}
+  .typing{align-self:flex-start;color:var(--dim);font-size:14px;font-style:italic;padding:4px 6px}
+
+  /* Input bar */
+  .inputbar{display:flex;gap:8px;align-items:flex-end;padding-top:10px;border-top:1px solid var(--border)}
+  .inputbar textarea{flex:1;resize:none;min-height:46px;max-height:120px;padding:12px 14px;border-radius:14px;
+    border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--ink);font-size:15px;
+    font-family:inherit;outline:none;line-height:1.4}
+  .inputbar textarea:focus{border-color:var(--accent)}
+  .iconbtn{width:46px;height:46px;border-radius:14px;border:none;cursor:pointer;font-size:20px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;transition:transform .12s}
+  .iconbtn:hover{transform:scale(1.05)}
+  .mic{background:rgba(255,255,255,.1);color:var(--ink)}
+  .mic.listening{background:var(--error);animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .send{background:var(--accent);color:var(--bg1)}
+  .send:disabled{opacity:.4;cursor:not-allowed}
+  .footnote{text-align:center;color:var(--dim);font-size:11px;padding:10px 0 4px}
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">quechimba<span class="dot">.</span><span class="en">english</span></div>
+    <div class="badge" id="modeBadge">Prototipo</div>
+  </header>
+
+  <div class="wrap">
+    <!-- ===== Screen 1: scenario picker ===== -->
+    <section class="screen active" id="pickScreen">
+      <h1>Practica inglés <span class="accent">hablando de verdad.</span></h1>
+      <p class="sub">Escoge una situación, y conversa con tu tutor de inglés. Puedes <strong>escribir</strong> o <strong>hablar</strong>. Si te equivocas, te corrijo con cariño y te explico en español.</p>
+
+      <div class="scenarios" id="scenarios">
+        <button class="scn" data-id="entrevista" data-en="a job interview"><span class="emoji">💼</span><span class="t">Entrevista de trabajo</span><span class="d">Practica para conseguir el trabajo</span></button>
+        <button class="scn" data-id="cafe" data-en="ordering at a coffee shop"><span class="emoji">☕</span><span class="t">Pedir en un café</span><span class="d">Ordena como local</span></button>
+        <button class="scn" data-id="doctor" data-en="a visit to the doctor"><span class="emoji">🩺</span><span class="t">En el doctor</span><span class="d">Explica cómo te sientes</span></button>
+        <button class="scn" data-id="vecinos" data-en="meeting your new neighbors"><span class="emoji">🏡</span><span class="t">Conocer vecinos</span><span class="d">Rompe el hielo en inglés</span></button>
+        <button class="scn" data-id="telefono" data-en="a customer service phone call"><span class="emoji">📞</span><span class="t">Llamada de servicio</span><span class="d">Resuelve un problema por teléfono</span></button>
+        <button class="scn" data-id="escuela" data-en="talking to your child's teacher"><span class="emoji">🎒</span><span class="t">La escuela de tu hijo</span><span class="d">Habla con el maestro</span></button>
+      </div>
+
+      <div class="keyrow">
+        <label>🔑 Modo en vivo (IA real) — opcional</label>
+        <div class="line">
+          <input type="password" id="apiKey" placeholder="Pega tu API key de OpenAI (sk-...)">
+        </div>
+        <div class="hint">Sin key funciona en <strong>modo demo</strong> (conversación guiada + correcciones reales). Con una API key de OpenAI tienes <strong>conversación 100% real e ilimitada</strong>. Tu key se queda solo en tu navegador — nunca se envía a ningún lado más que a OpenAI. Consíguela en platform.openai.com (≈$5 de crédito basta para cientos de conversaciones).</div>
+      </div>
+    </section>
+
+    <!-- ===== Screen 2: chat ===== -->
+    <section class="screen" id="chatScreen">
+      <div class="chathead">
+        <button class="back" id="backBtn">← Volver</button>
+        <div>
+          <div class="scn-title" id="scnTitle"></div>
+          <div class="scn-sub" id="scnSub"></div>
+        </div>
+        <div class="badge" id="liveBadge" style="margin-left:auto"></div>
+      </div>
+      <div class="msgs" id="msgs"></div>
+      <div class="inputbar">
+        <button class="iconbtn mic" id="micBtn" title="Hablar">🎤</button>
+        <textarea id="input" rows="1" placeholder="Escribe en inglés... o toca el micrófono 🎤"></textarea>
+        <button class="iconbtn send" id="sendBtn" title="Enviar">➤</button>
+      </div>
+      <div class="footnote">Toca 🔊 en cualquier mensaje para escuchar la pronunciación.</div>
+    </section>
+  </div>
+
+<script>
+// ============ Quechimba English prototype ============
+// Two modes:
+//  - DEMO  (no API key): guided scenario script + a real Spanish-speaker error-correction engine
+//  - LIVE  (OpenAI key) : open-ended real AI conversation with corrections, all in one call
+
+const $ = id => document.getElementById(id);
+let state = { scenario:null, scenarioEN:null, live:false, history:[], demoStep:0 };
+
+// ---------- Voice output (browser, free) ----------
+function speak(text){
+  if(!window.speechSynthesis) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = .92;
+  const v = speechSynthesis.getVoices().find(v=>v.lang.startsWith('en'));
+  if(v) u.voice = v;
+  speechSynthesis.speak(u);
+}
+
+// ---------- Error-correction engine (demo mode) ----------
+// Catches the most common Spanish-speaker English mistakes, with Spanish explanations.
+const RULES = [
+  {re:/\bi have (\d+) years\b/i, fix:(m)=>`I am ${m[1]} years old`, why:'En inglés la edad usa el verbo "to be" (ser/estar), no "to have". Decimos "I AM 25 years old", nunca "I have 25 years".'},
+  {re:/\bi have (\d+) years old\b/i, fix:(m)=>`I am ${m[1]} years old`, why:'Solo "I am X years old". El "have" sobra — la edad va con "to be".'},
+  {re:/\bi('m| am) agree\b/i, fix:()=>`I agree`, why:'"Agree" ya es un verbo. Se dice "I agree", no "I am agree". El "to be" no va aquí.'},
+  {re:/\bi('m| am) bad (to|for) (\w+)/i, fix:(m)=>`I'm bad at ${m[3]}${/ing$/.test(m[3])?'':'ing'}`, why:'La estructura es "bad AT + verbo-ing". Ej: "I\'m bad at speaking", no "bad to speak".'},
+  {re:/\bpeople is\b/i, fix:()=>`people are`, why:'"People" es plural en inglés, así que usa "are": "people ARE", no "people is".'},
+  {re:/\bi no (\w+)/i, fix:(m)=>`I don't ${m[1]}`, why:'Para negar en presente usamos "don\'t": "I don\'t understand", no "I no understand".'},
+  {re:/\bexplain me\b/i, fix:()=>`explain to me`, why:'"Explain" necesita "to": "explain TO me", no "explain me".'},
+  {re:/\bi('m| am) embarrassed\b/i, fix:()=>`I'm embarrassed`, why:'¡Ojo, falso amigo! "Embarrassed" = avergonzado, NO embarazada. Si querías decir embarazada sería "pregnant". (Tu frase está bien si quisiste decir "avergonzado".)', soft:true},
+  {re:/\bhow is called\b/i, fix:()=>`what is it called`, why:'Preguntamos "WHAT is it called", no "how is called".'},
+  {re:/\bi did a question\b/i, fix:()=>`I asked a question`, why:'Las preguntas se "hacen" con "ask": "I asked a question", no "did a question".'},
+  {re:/\bthe english\b/i, fix:()=>`English`, why:'Los idiomas no llevan "the": decimos "I speak English", no "the English".'},
+  {re:/\bmore better\b/i, fix:()=>`better`, why:'"Better" ya es comparativo. No se dice "more better", solo "better".'},
+  {re:/\bi want that you\b/i, fix:()=>`I want you to`, why:'La estructura es "I want you TO + verbo": "I want you to help", no "I want that you".'},
+];
+function checkErrors(text){
+  for(const r of RULES){
+    const m = text.match(r.re);
+    if(m){
+      const wrong = m[0];
+      const right = r.fix(m);
+      if(r.soft) return {soft:true, why:r.why};
+      if(wrong.toLowerCase()!==right.toLowerCase())
+        return {wrong, right, why:r.why};
+    }
+  }
+  return null;
+}
+
+// ---------- Demo conversation scripts ----------
+const SCRIPTS = {
+  entrevista:["Hi! Thanks for coming in today. Please, have a seat. So — tell me a little about yourself.",
+    "Nice to meet you! How many years of experience do you have in this kind of work?",
+    "That's great. Why do you want to work with us?",
+    "I like your answer. Do you have any questions for me?",
+    "Perfect. We'll be in touch very soon. Thank you so much for coming in!"],
+  cafe:["Hi there! Welcome in. What can I get for you today?",
+    "Good choice! What size would you like — small, medium, or large?",
+    "Got it. Anything else? Maybe something to eat?",
+    "Sounds good. Can I get a name for the order?",
+    "Awesome, it'll be ready in just a minute. Have a great day!"],
+  doctor:["Hello, come on in. So, what brings you in today? How are you feeling?",
+    "I'm sorry to hear that. How long have you been feeling this way?",
+    "Okay. Do you have any other symptoms — fever, headache, anything else?",
+    "Thank you. I'm going to recommend some rest and water. Any questions?",
+    "Take care of yourself. Feel better soon!"],
+  vecinos:["Oh, hi! You must be the new neighbor. Welcome to the building! I'm Sarah.",
+    "Nice to meet you! Where are you moving from?",
+    "How exciting! How are you liking the neighborhood so far?",
+    "If you need anything, just knock. Do you have any questions about the area?",
+    "Great chatting with you! See you around!"],
+  telefono:["Thank you for calling customer service, this is Mike. How can I help you today?",
+    "I'm sorry to hear that. Can you tell me a little more about the problem?",
+    "I understand. Let me look into that for you. Can I have your account number?",
+    "Thank you. I've found your account. I think I can fix this for you. Anything else?",
+    "You're all set. Thank you for your patience, and have a great day!"],
+  escuela:["Hi, thanks for coming in. I'm Ms. Johnson, your son's teacher. Please, sit down.",
+    "I wanted to talk about how he's doing in class. How is he feeling about school at home?",
+    "That's helpful to know. He's a bright kid. Is there anything you'd like me to focus on?",
+    "Absolutely, I can do that. Do you have any questions for me?",
+    "Thank you so much for coming in. Let's keep in touch!"]
+};
+
+// ---------- UI ----------
+function addMsg(text, who){
+  const d = document.createElement('div');
+  d.className = 'msg '+who;
+  d.textContent = text;
+  if(who==='ai'){
+    const b = document.createElement('button');
+    b.className='speak'; b.textContent='🔊';
+    b.onclick = ()=>speak(text);
+    d.appendChild(b);
+  }
+  $('msgs').appendChild(d);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
+  if(who==='ai') speak(text);
+}
+function addCorrection(c){
+  const d = document.createElement('div');
+  d.className='correction';
+  if(c.soft){
+    d.innerHTML = `<div class="h">💡 Nota</div><div class="why">${c.why}</div>`;
+  }else{
+    d.innerHTML = `<div class="h">✏️ Corrección amable</div>`+
+      `<div><span class="wrong">${c.wrong}</span> → <span class="right">${c.right}</span></div>`+
+      `<div class="why">${c.why}</div>`;
+  }
+  $('msgs').appendChild(d);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
+}
+function addTyping(){
+  const d=document.createElement('div'); d.className='typing'; d.id='typing';
+  d.textContent='escribiendo…'; $('msgs').appendChild(d);
+  $('msgs').scrollTop=$('msgs').scrollHeight;
+}
+function rmTyping(){ const t=$('typing'); if(t) t.remove(); }
+
+// ---------- Live mode (OpenAI) ----------
+function systemPrompt(scenarioEN){
+  return `You are a warm, patient English tutor for a native Spanish speaker. You are role-playing the following scenario: ${scenarioEN}.
+
+RULES:
+- Stay fully in character for the role-play. Speak ONLY in English, in short, natural, conversational sentences (1-3 sentences). Match a beginner-to-intermediate level.
+- Be encouraging and human. This person is nervous about speaking English. Never lecture.
+- After your in-character reply, IF the user's last message contained an English error a Spanish speaker commonly makes, append a correction block. If there was no meaningful error, do NOT append anything.
+- The correction block must be EXACTLY this format on a new line:
+###CORRECTION### wrong text || corrected text || explanation in SPANISH (warm, short, explains the why)
+- Only correct real, meaningful errors (grammar, word choice, false friends). Ignore tiny typos and capitalization.
+- Keep the Spanish explanation friendly and brief, like a kind friend.
+
+Begin the role-play now with a natural opening line for the scenario.`;
+}
+
+async function callOpenAI(){
+  const key = state.key;
+  addTyping();
+  try{
+    const res = await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({
+        model:'gpt-4o-mini',
+        messages:state.history,
+        temperature:0.7, max_tokens:300
+      })
+    });
+    rmTyping();
+    if(!res.ok){
+      const e = await res.text();
+      addMsg("(Error de conexión con OpenAI. Revisa tu API key. Cambiando a modo demo.)",'ai');
+      state.live=false; updateBadges(); return;
+    }
+    const data = await res.json();
+    let reply = data.choices[0].message.content.trim();
+    state.history.push({role:'assistant',content:reply});
+    // split off correction block if present
+    let correction=null;
+    const idx = reply.indexOf('###CORRECTION###');
+    if(idx>=0){
+      const block = reply.slice(idx+16).trim();
+      reply = reply.slice(0,idx).trim();
+      const parts = block.split('||').map(s=>s.trim());
+      if(parts.length>=3) correction={wrong:parts[0],right:parts[1],why:parts[2]};
+    }
+    if(reply) addMsg(reply,'ai');
+    if(correction) addCorrection(correction);
+  }catch(err){
+    rmTyping();
+    addMsg("(No se pudo conectar. Usando modo demo.)",'ai');
+    state.live=false; updateBadges();
+  }
+}
+
+// ---------- Send handler ----------
+async function handleSend(){
+  const text = $('input').value.trim();
+  if(!text) return;
+  $('input').value='';
+  $('input').style.height='46px';
+  addMsg(text,'user');
+
+  if(state.live){
+    state.history.push({role:'user',content:text});
+    await callOpenAI();
+  }else{
+    // demo: run error engine, then advance script
+    const c = checkErrors(text);
+    setTimeout(()=>{
+      if(c) addCorrection(c);
+      state.demoStep++;
+      const script = SCRIPTS[state.scenario];
+      const next = script[Math.min(state.demoStep,script.length-1)];
+      addTyping();
+      setTimeout(()=>{rmTyping(); addMsg(next,'ai');},700);
+    }, c?500:200);
+  }
+}
+
+// ---------- Voice input (browser, free) ----------
+let recog=null;
+function setupRecog(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ $('micBtn').style.display='none'; return; }
+  recog = new SR();
+  recog.lang='en-US'; recog.interimResults=false; recog.maxAlternatives=1;
+  recog.onresult = e=>{
+    const t = e.results[0][0].transcript;
+    $('input').value = t;
+    $('micBtn').classList.remove('listening');
+  };
+  recog.onerror = ()=>$('micBtn').classList.remove('listening');
+  recog.onend = ()=>$('micBtn').classList.remove('listening');
+}
+$('micBtn').onclick = ()=>{
+  if(!recog) return;
+  if($('micBtn').classList.contains('listening')){ recog.stop(); return; }
+  $('micBtn').classList.add('listening');
+  try{ recog.start(); }catch(e){ $('micBtn').classList.remove('listening'); }
+};
+
+// ---------- Navigation ----------
+function updateBadges(){
+  $('modeBadge').textContent = state.live? 'Modo en vivo' : 'Modo demo';
+  $('liveBadge').innerHTML = state.live
+    ? '<span class="mode-pill mode-live">IA en vivo</span>'
+    : '<span class="mode-pill mode-demo">Demo</span>';
+}
+document.querySelectorAll('.scn').forEach(b=>{
+  b.onclick = ()=>{
+    state.scenario = b.dataset.id;
+    state.scenarioEN = b.dataset.en;
+    state.demoStep = 0;
+    state.history = [];
+    const key = $('apiKey').value.trim();
+    state.live = key.startsWith('sk-');
+    state.key = key;
+    $('scnTitle').textContent = b.querySelector('.t').textContent;
+    $('scnSub').textContent = b.querySelector('.d').textContent;
+    $('msgs').innerHTML='';
+    updateBadges();
+    $('pickScreen').classList.remove('active');
+    $('chatScreen').classList.add('active');
+    // opening line
+    if(state.live){
+      state.history.push({role:'system',content:systemPrompt(state.scenarioEN)});
+      callOpenAI();
+    }else{
+      addTyping();
+      setTimeout(()=>{rmTyping(); addMsg(SCRIPTS[state.scenario][0],'ai');},600);
+    }
+  };
+});
+$('backBtn').onclick = ()=>{
+  speechSynthesis && speechSynthesis.cancel();
+  $('chatScreen').classList.remove('active');
+  $('pickScreen').classList.add('active');
+};
+$('sendBtn').onclick = handleSend;
+$('input').addEventListener('keydown', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); handleSend(); }
+});
+$('input').addEventListener('input', e=>{
+  e.target.style.height='46px';
+  e.target.style.height=Math.min(e.target.scrollHeight,120)+'px';
+});
+setupRecog();
+if(window.speechSynthesis) speechSynthesis.getVoices();
+</script>
+</body>
+</html>
