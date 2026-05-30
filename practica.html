@@ -69,6 +69,10 @@
   .correction .wrong{color:var(--error);text-decoration:line-through}
   .correction .right{color:var(--user);font-weight:700}
   .correction .why{color:var(--dim);margin-top:6px;font-size:13px}
+  .praise{align-self:flex-start;max-width:90%;background:rgba(6,214,160,.14);border:1px solid var(--user);
+    border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.5}
+  .praise .h{font-weight:800;color:var(--user);font-size:12px;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+  .praise .why{color:#d7fff1}
   .typing{align-self:flex-start;color:var(--dim);font-size:14px;font-style:italic;padding:4px 6px}
 
   /* Input bar */
@@ -189,6 +193,17 @@ function checkErrors(text){
   return null;
 }
 
+// Positive reinforcement (demo mode) — shown when there's no error.
+const PRAISE = [
+  '¡Perfecto! Esa frase está muy bien construida. 👏',
+  '¡Bien dicho! Sonó natural, como un hablante nativo.',
+  '¡Excelente! Tu gramática estuvo correcta ahí.',
+  '¡Muy bien! Esa estructura quedó perfecta.',
+  '¡Eso es! Lo dijiste exactamente como se dice en inglés.',
+  '¡Genial! Sin errores. Vas mejorando con cada frase.',
+  '¡Correcto! Esa respuesta estuvo clara y bien hecha.'
+];
+
 // ---------- Demo conversation scripts ----------
 const SCRIPTS = {
   entrevista:["Hi! Thanks for coming in today. Please, have a seat. So — tell me a little about yourself.",
@@ -251,6 +266,13 @@ function addCorrection(c){
   $('msgs').appendChild(d);
   $('msgs').scrollTop = $('msgs').scrollHeight;
 }
+function addPraise(text){
+  const d = document.createElement('div');
+  d.className='praise';
+  d.innerHTML = `<div class="h">✅ ¡Bien dicho!</div><div class="why">${text}</div>`;
+  $('msgs').appendChild(d);
+  $('msgs').scrollTop = $('msgs').scrollHeight;
+}
 function addTyping(){
   const d=document.createElement('div'); d.className='typing'; d.id='typing';
   d.textContent='escribiendo…'; $('msgs').appendChild(d);
@@ -265,11 +287,14 @@ function systemPrompt(scenarioEN){
 RULES:
 - Stay fully in character for the role-play. Speak ONLY in English, in short, natural, conversational sentences (1-3 sentences). Match a beginner-to-intermediate level.
 - Be encouraging and human. This person is nervous about speaking English. Never lecture.
-- After your in-character reply, IF the user's last message contained an English error a Spanish speaker commonly makes, append a correction block. If there was no meaningful error, do NOT append anything.
-- The correction block must be EXACTLY this format on a new line:
+- After your in-character reply, you must ALWAYS append EXACTLY ONE feedback block about the user's last message — either a correction OR a praise, never both, never neither.
+- IF the user's last message contained a real, meaningful English error a Spanish speaker commonly makes (grammar, word choice, false friends), append a correction block in EXACTLY this format on a new line:
 ###CORRECTION### wrong text || corrected text || explanation in SPANISH (warm, short, explains the why)
-- Only correct real, meaningful errors (grammar, word choice, false friends). Ignore tiny typos and capitalization.
-- Keep the Spanish explanation friendly and brief, like a kind friend.
+- IF the user's last message had NO meaningful error, append a praise block in EXACTLY this format on a new line:
+###CORRECT### short warm affirmation in SPANISH (1 sentence; when natural, briefly name what they did well, e.g. good verb tense, natural word choice)
+- Only correct real, meaningful errors. Ignore tiny typos and capitalization — those count as correct, so praise them.
+- Keep all Spanish explanations friendly and brief, like a kind friend.
+- The user's very first message and greetings still get a praise block if there's no error.
 
 Begin the role-play now with a natural opening line for the scenario.`;
 }
@@ -296,17 +321,22 @@ async function callOpenAI(){
     const data = await res.json();
     let reply = data.choices[0].message.content.trim();
     state.history.push({role:'assistant',content:reply});
-    // split off correction block if present
-    let correction=null;
-    const idx = reply.indexOf('###CORRECTION###');
-    if(idx>=0){
-      const block = reply.slice(idx+16).trim();
-      reply = reply.slice(0,idx).trim();
+    // split off feedback block if present — correction OR praise
+    let correction=null, praise=null;
+    const ci = reply.indexOf('###CORRECTION###');
+    const pi = reply.indexOf('###CORRECT###');
+    if(ci>=0){
+      const block = reply.slice(ci+16).trim();
+      reply = reply.slice(0,ci).trim();
       const parts = block.split('||').map(s=>s.trim());
       if(parts.length>=3) correction={wrong:parts[0],right:parts[1],why:parts[2]};
+    }else if(pi>=0){
+      praise = reply.slice(pi+13).trim();
+      reply = reply.slice(0,pi).trim();
     }
     if(reply) addMsg(reply,'ai');
     if(correction) addCorrection(correction);
+    else if(praise) addPraise(praise);
   }catch(err){
     rmTyping();
     addMsg("(No se pudo conectar. Usando modo demo.)",'ai');
@@ -330,6 +360,7 @@ async function handleSend(){
     const c = checkErrors(text);
     setTimeout(()=>{
       if(c) addCorrection(c);
+      else addPraise(PRAISE[Math.floor(Math.random()*PRAISE.length)]);
       state.demoStep++;
       const script = SCRIPTS[state.scenario];
       const next = script[Math.min(state.demoStep,script.length-1)];
