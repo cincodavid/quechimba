@@ -301,6 +301,8 @@ Begin the role-play now with a natural opening line for the scenario.`;
 
 async function callOpenAI(){
   const key = state.key;
+  // Is this AI turn a response to a user message? (the opening greeting is not)
+  const isReply = state.history.some(m=>m.role==='user');
   addTyping();
   try{
     const res = await fetch('https://api.openai.com/v1/chat/completions',{
@@ -337,6 +339,7 @@ async function callOpenAI(){
     if(reply) addMsg(reply,'ai');
     if(correction) addCorrection(correction);
     else if(praise) addPraise(praise);
+    else if(isReply) addPraise(PRAISE[Math.floor(Math.random()*PRAISE.length)]); // fallback: always acknowledge a correct turn
   }catch(err){
     rmTyping();
     addMsg("(No se pudo conectar. Usando modo demo.)",'ai');
